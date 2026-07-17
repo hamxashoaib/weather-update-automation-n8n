@@ -12,5 +12,5 @@
   - https://open-meteo.com
 
 ## Files in This Repo
-- `weather-update-automation.json` the exported n8n workflow, ready to import
-- `README.md` project overview and setup instructions
+- `weather-update-automation.json` the exported n8n workflow, ready to import.
+- `README.md` project overview and setup instructions.
