@@ -23,7 +23,7 @@ An automated weather notification system built in n8n that checks current weathe
 
 ## Screenshots
 
-*(Add your workflow canvas screenshot and a sample Telegram message screenshot here)*
+![Workflow Screenshot](Workflow%20Image/Screenshot.png)
 
 
 ## Sample Output
