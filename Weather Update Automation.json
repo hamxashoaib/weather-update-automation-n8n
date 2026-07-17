@@ -1,0 +1,124 @@
+{
+  "name": "Weather Update Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "759d6919-6ccd-4b04-8a4b-9d713a676114",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=29.5406&longitude=71.6198&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_days=1&timezone=Asia%2FKarachi",
+        "options": {}
+      },
+      "id": "9a5d4ce0-6bc2-45b2-8f06-4e88ffa84132",
+      "name": "Get Weather Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = items[0].json;\nconst w = data.current;\n \nconst weatherCodes = {\n  0: \"Clear sky\", 1: \"Mainly clear\", 2: \"Partly cloudy\", 3: \"Overcast\",\n  45: \"Foggy\", 48: \"Foggy\", 51: \"Light drizzle\", 53: \"Drizzle\", 55: \"Heavy drizzle\",\n  61: \"Light rain\", 63: \"Rain\", 65: \"Heavy rain\",\n  71: \"Light snow\", 73: \"Snow\", 75: \"Heavy snow\",\n  80: \"Rain showers\", 81: \"Rain showers\", 82: \"Violent rain showers\",\n  95: \"Thunderstorm\", 96: \"Thunderstorm with hail\", 99: \"Thunderstorm with heavy hail\"\n};\n \nconst condition = weatherCodes[w.weather_code] || \"Unknown\";\n \n// Find the current hour's index in the hourly array to get the matching rain chance\nconst now = new Date();\nconst currentHourStr = now.toISOString().slice(0, 13); // e.g. \"2026-07-15T14\"\nlet rainChance = \"N/A\";\nconst hourlyTimes = data.hourly.time;\nfor (let i = 0; i < hourlyTimes.length; i++) {\n  if (hourlyTimes[i].startsWith(currentHourStr)) {\n    rainChance = data.hourly.precipitation_probability[i] + \"%\";\n    break;\n  }\n}\n \nconst message = `Weather Update - Lodhran\nTemperature: ${w.temperature_2m}°C (feels like ${w.apparent_temperature}°C)\nCondition: ${condition}\nHumidity: ${w.relative_humidity_2m}%\nWind: ${w.wind_speed_10m} km/h\nChance of Rain: ${rainChance}`;\n \nreturn [{ json: { message } }];"
+      },
+      "id": "425a89fa-be4e-4605-bb67-9603a905b38c",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6569488590",
+        "text": "={{$json.message}}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "1c780d43-01ac-4d61-a6c0-3164cf90e72f",
+      "name": "Send Telegram Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        0
+      ],
+      "webhookId": "dd86bef3-6874-4a11-b01d-9acd56416ef9",
+      "credentials": {
+        "telegramApi": {
+          "id": "jeVnDLTpcQNgBpBG",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Weather Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Weather Data": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d63d4ca4-637d-445d-9f6f-8429a44ededf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c9355ac6d491704c9f1acfceb3483709d696ae427a57332a0637dcd10b5787ad"
+  },
+  "nodeGroups": [],
+  "id": "F2hTF2tbagyvV8kM",
+  "tags": []
+}
